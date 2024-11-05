@@ -36,7 +36,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> {
             auth
 //                    .requestMatchers("/user/list").hasAnyRole("ADMIN")
-                    .requestMatchers("/user/create", "/user/doLogin").permitAll()
+                    .requestMatchers("/user/create", "/user/doLogin", "/user/refresh").permitAll()
                     .anyRequest().authenticated();
         })
                 // 커스텀 필터를 등록.

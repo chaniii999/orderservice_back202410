@@ -2,6 +2,7 @@ package com.playdata.orderservice.user.controller;
 
 import com.playdata.orderservice.common.auth.JwtTokenProvider;
 import com.playdata.orderservice.common.auth.TokenUserInfo;
+import com.playdata.orderservice.common.dto.CommonErrorDto;
 import com.playdata.orderservice.common.dto.CommonResDto;
 import com.playdata.orderservice.user.dto.UserLoginReqDto;
 import com.playdata.orderservice.user.dto.UserResDto;
@@ -105,6 +106,36 @@ public class UserController {
 
         return new ResponseEntity<>(resDto, HttpStatus.OK);
     }
+
+    // access token이 만료되어 새 토큰을 요청
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@RequestBody String id) {
+        log.info("/user/refresh: POST, id: {}", id);
+        User user = userService.findById(Long.parseLong(id));
+
+        // email로 redis를 조회해서 refresh token을 가져오자
+        Object obj = redisTemplate.opsForValue().get(user.getEmail());
+        if (obj == null) { // refresh token의 수명이 다됨.
+            return new ResponseEntity<>(new CommonErrorDto(
+                    HttpStatus.UNAUTHORIZED,
+                    "리프레시 토큰도 만료됨! 로그인 필요!"
+            ), HttpStatus.UNAUTHORIZED);
+        }
+
+        // 새로운 access token을 발급하자.
+        String newAccessToken
+                = jwtTokenProvider.createToken(user.getEmail(), user.getRole().toString());
+
+        Map<String, Object> info = new HashMap<>();
+        info.put("token", newAccessToken);
+        CommonResDto resDto
+                = new CommonResDto(HttpStatus.OK, "새 토큰 발급됨!", info);
+
+        return new ResponseEntity<>(resDto, HttpStatus.OK);
+    }
+
+
+
 
 
 
