@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -28,6 +29,8 @@ public class SecurityConfig {
         // CSRF(Cross Site Request Forgery) 사이트 간 요청 위조
         http.csrf(csrfConfig -> csrfConfig.disable());
 
+        http.cors(Customizer.withDefaults()); // 직접 커스텀한 CORS 설정을 적용하겠다.
+
         // 세션 관리 상태를 사용하지 않고
         // STATELESS한 토큰을 사용하겠다.
         http.sessionManagement(session ->
@@ -36,7 +39,8 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> {
             auth
 //                    .requestMatchers("/user/list").hasAnyRole("ADMIN")
-                    .requestMatchers("/user/create", "/user/doLogin", "/user/refresh").permitAll()
+                    .requestMatchers("/user/create", "/user/doLogin",
+                            "/user/refresh", "/product/list").permitAll()
                     .anyRequest().authenticated();
         })
                 // 커스텀 필터를 등록.
