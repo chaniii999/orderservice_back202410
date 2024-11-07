@@ -80,7 +80,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             // 토큰 검증 과정에서 문제가 발생한다면 동작할 로직
             log.error(e.getMessage());
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.setContentType("application/json");
+            response.setContentType("application/json; charset=utf-8");
             response.getWriter().write("토큰에 문제가 있습니다!");
         }
 
