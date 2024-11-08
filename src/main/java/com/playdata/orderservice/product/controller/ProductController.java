@@ -3,6 +3,7 @@ package com.playdata.orderservice.product.controller;
 import com.playdata.orderservice.common.dto.CommonResDto;
 import com.playdata.orderservice.product.dto.ProductResDto;
 import com.playdata.orderservice.product.dto.ProductSaveReqDto;
+import com.playdata.orderservice.product.dto.ProductSearchDto;
 import com.playdata.orderservice.product.entity.Product;
 import com.playdata.orderservice.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -47,9 +48,10 @@ public class ProductController {
     // 컨트롤러 파라미터로 Pageable 선언하면, 페이징 파라미터 처리를 쉽게 진행할 수 있음.
     // /list?page=1&size=10&sort=name,desc 요런 식으로.
     // 요청 시 쿼리스트링이 전달되지 않으면 기본값 0, 20, unsorted
-    public ResponseEntity<?> listProducts(Pageable pageable) {
+    public ResponseEntity<?> listProducts(ProductSearchDto searchDto, Pageable pageable) {
+        log.info("/product/list: GET, dto: {}", searchDto);
         log.info("/product/list: GET, pageable={}", pageable);
-        Page<ProductResDto> dtoList = productService.productList(pageable);
+        Page<ProductResDto> dtoList = productService.productList(searchDto, pageable);
 
         CommonResDto resDto
                 = new CommonResDto(HttpStatus.OK, "상품리스트 정상조회 완료", dtoList);
