@@ -1,6 +1,7 @@
 package com.playdata.orderservice.ordering.controller;
 
 import com.playdata.orderservice.common.auth.TokenUserInfo;
+import com.playdata.orderservice.ordering.dto.OrderingListResDto;
 import com.playdata.orderservice.ordering.entity.Ordering;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -62,6 +63,16 @@ public class SseController {
     }
 
     public void sendOrderMessage(Ordering save) {
+        OrderingListResDto dto = save.fromEntity();
+        // 누구에게 메세지를 전달할 지 알려줘야 한다. (admin@admin.com이 받는다고 가정)
+        SseEmitter emitter = emitters.get("admin@admin.com");
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("ordered")
+                    .data(dto));
+        } catch (IOException e) {
+            emitters.remove("admin@admin.com");
+        }
 
     }
 
