@@ -1,6 +1,7 @@
 package com.playdata.orderservice.ordering.service;
 
 import com.playdata.orderservice.common.auth.TokenUserInfo;
+import com.playdata.orderservice.ordering.controller.SseController;
 import com.playdata.orderservice.ordering.dto.OrderingListResDto;
 import com.playdata.orderservice.ordering.dto.OrderingSaveReqDto;
 import com.playdata.orderservice.ordering.entity.OrderDetail;
@@ -30,6 +31,7 @@ public class OrderingService {
     private final OrderingRepository orderingRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final SseController sseController;
 
 
     public Ordering createOrdering(List<OrderingSaveReqDto> dtoList,
@@ -76,7 +78,12 @@ public class OrderingService {
         } // end forEach
 
         // Ordering 객체를 save하면 내부에 있는 detail 리스트도 함께 INSERT가 진행이 된다.
-        return orderingRepository.save(ordering);
+        Ordering save = orderingRepository.save(ordering);
+
+        // 관리자에게 주문이 생성되었다는 알림을 전송
+        sseController.sendOrderMessage(save);
+
+        return save;
 
     }
 
