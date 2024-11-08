@@ -45,7 +45,7 @@ public class ProductController {
     // 페이징이 필요합니다. 리턴은 ProductResDto 형태로 리턴됩니다.
     // ProductResDto(id, name, category, price, stockQuantity, imagePath)
     // 컨트롤러 파라미터로 Pageable 선언하면, 페이징 파라미터 처리를 쉽게 진행할 수 있음.
-    // /list?number=1&size=10&sort=name,desc 요런 식으로.
+    // /list?page=1&size=10&sort=name,desc 요런 식으로.
     // 요청 시 쿼리스트링이 전달되지 않으면 기본값 0, 20, unsorted
     public ResponseEntity<?> listProducts(Pageable pageable) {
         log.info("/product/list: GET, pageable={}", pageable);
