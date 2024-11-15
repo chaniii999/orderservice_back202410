@@ -5,11 +5,21 @@ FROM openjdk:17-jdk-slim AS build
 
 # 소스코드 복사
 WORKDIR /app
-COPY . /app
+
+# Gradle Wrapper 및 종속성 복사
+COPY gradlew /app/
+COPY gradle /app/gradle
+COPY build.gradle /app/
+COPY settings.gradle /app/
+
+# Gradle 종속성 캐싱 (build.gradle, settings.gradle 등...에 변경이 없으면)
+# 기존에 가지고 있던 내용을 그대로 사용함.
+RUN chmod +x ./gradlew
+RUN ./gradlew dependencies --no-daemon
 
 # gradle wrapper로 빌드
-RUN chmod +x ./gradlew
-RUN ./gradlew clean build
+COPY . /app
+RUN ./gradlew clean build -x test
 
 # 새로운 스테이지 -> 실행 영역
 FROM openjdk:17-jdk-slim
