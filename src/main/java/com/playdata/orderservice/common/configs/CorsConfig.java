@@ -13,7 +13,7 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000")
+                .allowedOrigins("http://orderservice-front8917.s3-website.ap-northeast-2.amazonaws.com")
                 .allowedMethods("*") // get, post 요청 허용 여부
                 .allowedHeaders("*")
                 .allowCredentials(true); // 보안처리 (쿠키에 세션값을 담는 등)

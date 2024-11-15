@@ -1,0 +1,12 @@
+
+services:
+  app:
+    build: .
+    ports:
+      - "80:80"
+    environment:
+      SPRING_PROFILES_ACTIVE: 'prod'
+  redis:
+    image: redis:latest
+    ports:
+      - '6379:6379'
