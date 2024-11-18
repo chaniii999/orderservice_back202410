@@ -1,0 +1,71 @@
+name: Deploy Spring Application to AWS EC2
+
+# 이 GitHub Actions 워크플로우는 메인 브랜치에 코드가 푸시될 때마다 실행됩니다.
+on:
+  push:
+    branches:
+      - main
+
+# 'build-and-deploy' 작업을 정의합니다. 이 작업은 ubuntu-latest 환경에서 실행됩니다.
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    # 작업을 순차적으로 정의합니다.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        # 현재 리포지토리 코드를 체크아웃합니다.
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        # Gradle 래퍼 스크립트에 실행 권한을 부여합니다.
+
+      - name: Make directory for deliver
+        run: mkdir deploy
+        # 배포를 위한 디렉토리를 생성합니다.
+
+      - name: Write the application.yml
+        run: |
+          echo "${{ secrets.APPLICATION_YML }}" > ./src/main/resources/application-prod.yml
+        # 비밀 저장소에서 가져온 application.yml 설정을 파일로 작성합니다.
+
+      ## Docker 이미지를 빌드하고 Docker Hub에 푸시합니다.
+      - name: web springboot docker build and push
+        run: |
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+          docker build --no-cache -t chani999/order-service:latest .
+          docker push chani999/order-service:latest
+          # Docker Hub에 로그인 후, 최신 태그를 사용하여 이미지를 빌드하고 푸시합니다.
+          # '--no-cache' 옵션은 캐시를 사용하지 않고 이미지를 빌드합니다.
+
+      # Docker Hub에서 이미지를 pull하고 EC2 인스턴스에 배포합니다.
+      - name: Deploy to Dev
+        uses: appleboy/ssh-action@master
+        with:
+          username: ubuntu
+          host: ${{ secrets.EC2_HOST }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Docker login..."
+            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+            
+            echo "Write the docker-compose.yml"
+            echo "${{ secrets.DOCKER_COMPOSE_YML }}" > ./docker-compose.yml
+            # EC2 인스턴스에 docker-compose.yml 파일을 작성합니다.
+
+            echo "Stopping existing container..."
+            docker-compose down || true
+            # 기존에 실행 중인 도커 컨테이너를 중지합니다.
+
+            echo "Remove Existing Docker image..."
+            docker rmi chani999/order-service:latest || true
+            # 이전에 다운로드된 도커 이미지를 삭제합니다.
+
+            echo "Pulling Docker image..."
+            docker pull chani999/order-service:latest
+            # 최신 도커 이미지를 다시 pull합니다.
+
+            echo "Starting new container..."
+            docker-compose up -d 
+            # docker-compose를 사용하여 새 컨테이너를 백그라운드 모드에서 실행합니다.
